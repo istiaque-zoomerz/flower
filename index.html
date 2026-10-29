@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beautiful Flower Garden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-style: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #1a0b2e, #3b154d, #140526);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* নির্দেশনা টেক্সট */
+        .instruction {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 20px;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* ফুলের মূল কন্টেইনার */
+        .flower {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* ফুলের মাঝখানের অংশ */
+        .flower-center {
+            width: 24px;
+            height: 24px;
+            background: #ffeb3b;
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 15px #ffeb3b;
+            transform: scale(0);
+            animation: growCenter 0.4s ease-out forwards;
+        }
+
+        /* ফুলের পাপড়ি */
+        .petal {
+            position: absolute;
+            background: var(--petal-color);
+            border-radius: 50% 50% 0 50%;
+            opacity: 0.9;
+            transform-origin: bottom right;
+            transform: rotate(var(--angle)) scale(0);
+            animation: growPetal 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation-delay: var(--delay);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2), 0 0 10px var(--petal-color);
+        }
+
+        /* অ্যানিমেশনসমূহ */
+        @keyframes growCenter {
+            to { transform: scale(1); }
+        }
+
+        @keyframes growPetal {
+            to {
+                transform: rotate(var(--angle)) scale(1);
+                /* পাপড়িগুলো একটু ছড়িয়ে যাওয়ার জন্য একটু ট্রান্সলেট */
+                translate: -50% -50%;
+            }
+        }
+
+        /* আলোর কণা (Glow particles) */
+        .sparkle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px white;
+            animation: flyUp var(--duration) linear forwards;
+        }
+
+        @keyframes flyUp {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(-50% + var(--mx)), calc(-50% + var(--my))) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="instruction">🌸 স্ক্রিনের যেকোনো জায়গায় ক্লিক করে হাজারো সুন্দর ফুল ফোটান! 🌸</div>
+
+    <script>
+        // চমৎকার কিছু ফুলের কালার প্যালেট
+        const colors = [
+            '#ff4081', '#ff1744', '#e040fb', '#aa00ff', 
+            '#3d5afe', '#00e5ff', '#1de9b6', '#00e676', 
+            '#ffea00', '#ff9100', '#ff3d00', '#f48fb1'
+        ];
+
+        document.addEventListener('click', (e) => {
+            createFlower(e.clientX, e.clientY);
+        });
+
+        // অটোমেটিক কিছু ফুল তৈরি হবে শুরুতে
+        window.onload = () => {
+            for(let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    createFlower(x, y);
+                }, i * 300);
+            }
+        };
+
+        function createFlower(x, y) {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.style.left = x + 'px';
+            flower.style.top = y + 'px';
+
+            // র্যান্ডম সাইজ এবং কালার নির্বাচন
+            const flowerSize = Math.random() * 40 + 40; // ৪০ থেকে ৮০ পিক্সেল
+            const petalColor = colors[Math.floor(Math.random() * colors.length)];
+            const totalPetals = Math.floor(Math.random() * 4) + 6; // ৬ থেকে ৯টি পাপড়ি
+            
+            // মাঝখানের অংশ তৈরি
+            const center = document.createElement('div');
+            center.className = 'flower-center';
+            flower.appendChild(center);
+
+            // পাপড়ি তৈরি
+            for (let i = 0; i < totalPetals; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                
+                // পাপড়ির সাইজ নির্ধারণ
+                petal.style.width = (flowerSize / 2) + 'px';
+                petal.style.height = (flowerSize / 1.5) + 'px';
+                
+                // সিএসএস ভ্যারিয়েবল সেট করা (অ্যানিমেশন ও কালারের জন্য)
+                petal.style.setProperty('--petal-color', petalColor);
+                petal.style.setProperty('--angle', `${(360 / totalPetals) * i}deg`);
+                petal.style.setProperty('--delay', `${i * 0.05}s`);
+                
+                flower.appendChild(petal);
+            }
+
+            document.body.appendChild(flower);
+
+            // ফুল ফোটার সাথে সাথে কিছু চমৎকার আলোর কণা (Sparkles) বের হবে
+            createSparkles(x, y, petalColor);
+
+            // ২0 সেকেন্ড পর ফুলগুলো মুছে যাবে যাতে ব্রাউজার স্লো না হয়
+            setTimeout(() => {
+                flower.style.transition = 'opacity 2s';
+                flower.style.opacity = '0';
+                setTimeout(() => flower.remove(), 2000);
+            }, 20000);
+        }
+
+        function createSparkles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = x + 'px';
+                sparkle.style.top = y + 'px';
+                
+                const size = Math.random() * 6 + 4;
+                sparkle.style.width = size + 'px';
+                sparkle.style.height = size + 'px';
+                sparkle.style.background = color;
+                sparkle.style.boxShadow = `0 0 10px ${color}`;
+
+                // কণাগুলো কোন দিকে উড়ে যাবে তা নির্ধারণ
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 100 + 50;
+                const mx = Math.cos(angle) * distance;
+                const my = Math.sin(angle) * distance;
+
+                sparkle.style.setProperty('--mx', mx + 'px');
+                sparkle.style.setProperty('--my', my + 'px');
+                sparkle.style.setProperty('--duration', (Math.random() * 0.6 + 0.6) + 's');
+
+                document.body.appendChild(sparkle);
+
+                setTimeout(() => sparkle.remove(), 1200);
+            }
+        }
+    </script>
+</body>
+</html>
